@@ -4,5 +4,5 @@
   "documentation": "https://github.com/jomwells/ambilights",
   "dependencies": [],
   "codeowners": ["@jomwells"],
-  "requirements": ["yeelight"]
+  "requirements": []
 }
