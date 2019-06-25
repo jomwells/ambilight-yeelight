@@ -1,7 +1,7 @@
 # Phillips TV Ambilight+Yeelight (Switch) Component 
 #### ``` Work in Progress```
 
-![Ambilight+Yeelight](https://github.com/jomwells/ambilight-yeelight/blob/master/images/ambilight+yeelight.jpg?raw=true)
+![Ambilight+Yeelight](https://github.com/jomwells/images/blob/master/ambilight+yeelight.jpg?raw=true)
 
 This new (and pretty unrefined) component mimics surprisingly well the funtionality of Amilight+Hue with all Yeelight bulbs/lights using the Music Mode function from their API. The colour of the bulb is read constantly from the TV (jointspace), processed on the Home Assistant machine, and updates are pushed to the bulb in a loop until turned off. I'm sure it could be improved, so the code is commented, I encourage you to have a play with the values and check the links for more custom changes, if something else works better, or adds more features ill be happy to add them in for everyone. The values I've chosen are simply through trial and error. 
 
@@ -24,7 +24,7 @@ switch:
 
 The per-bulb positions I have added (defined by ```display_options```) are as follows:
 
-![Ambilight+Yeelight Positions](https://github.com/jomwells/ambilight-yeelight/blob/master/images/ambilight+yeelight_positions.jpg?raw=true)
+![Ambilight+Yeelight Positions](https://github.com/jomwells/images/blob/master/ambilight+yeelight_positions.jpg?raw=true)
 
 > Note: 
 > - I have not tested each and every one of these positions manually, if one of them doesn't seem right, assume it's my fault and let me know, they are quick fixes
