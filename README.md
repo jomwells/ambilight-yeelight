@@ -5,7 +5,7 @@
 
 This new (and pretty unrefined) component mimics surprisingly well the funtionality of Amilight+Hue with all Yeelight bulbs/lights using the Music Mode function from their API. The colour of the bulb is read constantly from the TV (jointspace), processed on the Home Assistant machine, and updates are pushed to the bulb in a loop until turned off. I'm sure it could be improved, so the code is commented, I encourage you to have a play with the values and check the links for more custom changes, if something else works better, or adds more features ill be happy to add them in for everyone. The values I've chosen are simply through trial and error. 
 
->### Epilepsy Warning:
+>### Potential Epilepsy Warning:
 >At times when testing this component (usually when the TV is displaying an ambient light / no colour), the bulb is still updated rapidly and can cause a noticeable flicker - if you have Epilepsy this may not be for you. (Yet) If anyone can find more optimal values to solve this, I would be very grateful (see Lines 83, 314, 316 etc).
 
 ## Installation
