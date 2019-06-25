@@ -8,6 +8,8 @@ This new (and pretty unrefined) component mimics surprisingly well the funtional
 >### Epilepsy Warning:
 >At times when testing this component (usually when the TV is displaying an ambient light / no colour), the bulb is still updated rapidly and can cause a noticeable flicker - if you have Epilepsy this may not be for you. (Yet) If anyone can find more optimal values to solve this, I would be very grateful (see Lines 83, 314, 316 etc).
 
+## Configuration
+
 If you have not setup any other phillips TV components, use the tool linked in the [Ambilight (Light) component](https://github.com/jomwells/ambilights) docs to obtain your username and password.
 ```
 switch:
