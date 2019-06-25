@@ -1,5 +1,5 @@
 # Phillips TV Ambilight+Yeelight (Switch) Component 
-## ``` Work in Progress```
+#### ``` Work in Progress```
 
 ![Ambilight+Yeelight](images/ambilight+yeelight.jpg)
 
