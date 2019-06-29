@@ -13,7 +13,7 @@ This new (and pretty unrefined) component mimics surprisingly well the funtional
 #### Option 1: (recommended)
 This repository is compatible with the Home Assistant Community Store ([HACS](https://community.home-assistant.io/t/custom-component-hacs/121727)).
 
-After installing HACS, add the repository ```jomwells/ambilight+yeelight```in settings, and use the ```configuration.yaml``` example below.
+After installing HACS, install 'Philips Ambilight+Yeelight' from the store, and use the ```configuration.yaml``` example below.
 
 
 #### Option 2: (manual)
