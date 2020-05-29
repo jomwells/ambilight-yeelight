@@ -4,7 +4,7 @@ import time, random, urllib3
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.components.switch import (
-    DOMAIN, PLATFORM_SCHEMA, SwitchDevice, ENTITY_ID_FORMAT)
+    DOMAIN, PLATFORM_SCHEMA, SwitchEntity, ENTITY_ID_FORMAT)
 from homeassistant.const import (CONF_HOST, CONF_NAME, CONF_USERNAME, CONF_PASSWORD, CONF_ADDRESS, CONF_DISPLAY_OPTIONS, STATE_OFF, STATE_STANDBY, STATE_ON)
 from requests.auth import HTTPDigestAuth
 from requests.adapters import HTTPAdapter
@@ -38,7 +38,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 	option = config.get(CONF_DISPLAY_OPTIONS)
 	add_devices([AmbiHue(name, tvip, bulbip, user, password, option)])
 
-class AmbiHue(SwitchDevice):
+class AmbiHue(SwitchEntity):
 
     def __init__(self, name, tvip, bulbip, user, password, option):
         self._name = name
