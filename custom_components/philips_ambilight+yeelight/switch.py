@@ -69,7 +69,7 @@ class AmbiHue(SwitchEntity):
         self._powerstate = False
         self._connfail = 0
         self._available = False
-        self._tv = PhilipsTV(tvip, 6, self._user, self._password)
+        self._tv = PhilipsTV(tvip, 6, user, password)
         self._bulbs = None
         if ',' in bulbips:
             self._bulbs = []
@@ -86,7 +86,7 @@ class AmbiHue(SwitchEntity):
         return self._name
 
     @property
-    def is_on(self) -> bool | None:
+    def is_on(self) -> bool:
         return self._state
     
     @property
@@ -105,27 +105,35 @@ class AmbiHue(SwitchEntity):
         return True
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        await self.async_connect()
         await self.async_update()
+        await self._tv.update()
         if self._powerstate == 'off':
             self._bulb.turn_on()
             self._bulb.start_music() # for updates to be quick enough for this to work, the 'music mode' must be enabled (see Yeelight API)
-        self._follow = True
-        self._state = True
-        # self.follow_tv(self._position, 0.05) # 0.05ms is the 'sleep' time between refresh cycles
-        future = asyncio.ensure_future(self.async_follow_tv(self._position, 0.05))
-        _LOGGER.error('AmbiYeelight turned on')
+        elif self._state == False:
+            self._bulb.start_music()
+        await self.async_update()
+        if self._state == True:
+            self._follow = True
+            future = asyncio.ensure_future(self.async_follow_tv(self._position, 0.05))
+            _LOGGER.debug('AmbiYeelight turned on')
     
     async def async_turn_off(self, **kwargs: Any) -> None:
         self._follow = False
-        await self.async_connect()
         self._bulb.stop_music() # disables (more intensive) music mode afterward
+        self._bulb.turn_off()
         self._state = False
+        _LOGGER.debug('AmbiYeelight turned off')
 
     async def async_getState(self):
         try:
-            powerstate = self._bulb.get_properties()['power']
-            musicstate = self._bulb.get_properties()['music_on']
+            properties = self._bulb.get_properties()
+            if properties:
+                powerstate = properties['power']
+                musicstate = properties['music_on']
+            else:
+                powerstate = 'off'
+                musicstate = 0
         except Exception as e:
             powerstate = 'off'
             musicstate = 0
@@ -133,14 +141,14 @@ class AmbiHue(SwitchEntity):
         return powerstate, musicstate
 
     async def async_update(self) -> None:
-        await self.async_connect()
+        await self.async_is_available()
         self._powerstate, musicstate = await self.async_getState()
         if int(musicstate) == 1:
             self._state = True
         else:
             self._state = False
 
-    async def async_connect(self):
+    async def async_is_available(self):
         try:
             properties = self._bulb.get_properties()
             if properties:
@@ -148,13 +156,14 @@ class AmbiHue(SwitchEntity):
             else:
                 self._available = False
         except Exception as e:
+            self._available = False
             _LOGGER.error('Failed to find bulb, trying again in 2s. Error: ' + str(e))
             await asyncio.sleep(2)
 
     async def async_get_ambisetting(self):
-        _LOGGER.error('Starting async_get_ambisetting')
+        _LOGGER.debug('Starting async_get_ambisetting')
         try:
-            ambiSetting = await self._tv.ambilight_current_configuration()
+            ambiSetting = await self._tv.getAmbilightCurrentConfiguration()
         except Exception as e:
             ambiSetting = None
             _LOGGER.error('Failed to get ambilight settings with error:'+ str(e))
@@ -166,7 +175,6 @@ class AmbiHue(SwitchEntity):
         try:
             if ambiSetting['styleName'] == "FOLLOW_VIDEO":
                 currentstate = await self._tv.getAmbilightMeasured() # uses pre-processing r,g,b values from tv (see: http://jointspace.sourceforge.net/projectdata/documentation/jasonApi/1/doc/API-ambilight.html)
-                # currentstate = await hass.async_add_executor_job(self._getReq('ambilight/measured'))
             else:
                 currentstate = await self._tv.getAmbilightProcessed() # uses post-processing r,g,b values from tv (allows yeelight bulb to follow tv's algorithms such as the follow audio effects and colours set by home assistant)
             layer1 = currentstate['layer1']
@@ -368,12 +376,10 @@ class AmbiHue(SwitchEntity):
         try:
             if r == None and g == None and b == None: # incase of a failure somewhere
                 r,g,b = DEFAULT_RGB_COLOR[0], DEFAULT_RGB_COLOR[1], DEFAULT_RGB_COLOR[2]
-                # self._bulb.set_brightness(0)
                 bulb.set_brightness(0)
             if r == 0 and g == 0 and b == 0: # dim bulb in game mode
                 if ambiSetting['menuSetting'] == "GAME":
                     r,g,b = DEFAULT_RGB_COLOR[0], DEFAULT_RGB_COLOR[1], DEFAULT_RGB_COLOR[2]
-                    # self._bulb.set_brightness(0)
                     bulb.set_brightness(0)
             else:
                 if ambiSetting['styleName'] == "FOLLOW_VIDEO":
@@ -384,7 +390,6 @@ class AmbiHue(SwitchEntity):
                     count=1,
                     action=Flow.actions.stay,
                     transitions=transitions)
-                # self._bulb.start_flow(flow)
                 bulb.start_flow(flow)
                 return True
         except Exception as e:
@@ -403,25 +408,25 @@ class AmbiHue(SwitchEntity):
                 if r == None and g == None and b == None:
                     _LOGGER.error('RGB values are None.')
 
-                # _LOGGER.error('going to set bulb with: ' + str(r) + ', ' + str(g) + ', ' + str(b) + ', ' + str(ambiSetting))
-                is_bulb_set = await self.async_set_bulb(self, self._bulb, r, g, b, ambiSetting)
+                is_bulb_set = await self.async_set_bulb(self._bulb, r, g, b, ambiSetting)
 
                 counter += 1
                 await asyncio.sleep(sleep)
             except Exception as e:
                 _LOGGER.error('Failed to transfer color values with error (from second loop):' + str(e))
                 self.turn_off()
+        return counter
 
     async def async_follow_tv(self, position, sleep):
-        _LOGGER.error('Starting async_follow_tv')
         while self._follow == True: # main loop for updating the bulb
             try:
                 ambiSetting = await self.async_get_ambisetting()
                 if ambiSetting is None:
                     _LOGGER.error('AmbiSetting is None.')
 
-                await asyncio.gather(self.async_second_loop(position, sleep, ambiSetting))
-
+                counter = await asyncio.gather(self.async_second_loop(position, sleep, ambiSetting))
             except Exception as e:
                 _LOGGER.error('Failed to transfer color values with error (from main loop):' + str(e))
                 self.turn_off()
+                return False
+        return True
